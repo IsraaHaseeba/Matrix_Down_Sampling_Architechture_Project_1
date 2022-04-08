@@ -1,9 +1,11 @@
 #STRINGS
 .data
-fileName: .asciiz "C:\\Users\\sosos\\Desktop\\Arc\\T1.txt"
-buff: .space 1024
-matrix: .space 1024
+fileName: .asciiz "C:\\Users\\HP\\Desktop\\4th_Year_2nd_semester\\Architecture\\projects\\project_1\\training\\T1.txt"
+buff: .space 10240
+matrix: .space 10240
 numBuff: .word
+errorMes: .asciiz "\n\nIncorrect input matrix!"
+
 
 
 	.text
@@ -12,9 +14,10 @@ numBuff: .word
 main:
 	
 	# Initializations:
-	li $t9, 0x2c 		# move the ascii code of ',' to register $t9
+	li $t9, 0 	# Previous row
 	la $t4, matrix
-	li $t8,0 #Size of the matrix
+	li $t8,0 #Size of column
+	li $t7,0 #Size of row
 
 	
 	# error in size 
@@ -64,39 +67,71 @@ main:
 	iterateBuff:
 		lb $t0, 0($t1) # load byte: $t0 = source[i]
 		beq $t0, 0, endIteration
-		bne $t0, $t9, dontConvert 	# compute the integer from digits
+		bne $t0, 0x2c, checkIsNewLine 	# compute the integer from digits
 		jal convertToInt
 		move $a1,$v1
-		move $a0, $v0
 		b next
-		dontConvert:
-		bne $t0, 0x0d, dontInc
-		jal incSizeOfMatrix
+		checkIsNewLine:
+		bne $t0, 0x0d, checkIf0x0a
+		
 		jal convertToInt
 		move $a1,$v1
-		move $a0, $v0
+		
+		beqz $t9,firstIteration
+		bne $t9,$t7,Error
+		move $t9,$t7
+		li $t7,0
 		b next
-		dontInc:
+		firstIteration:
+		move $t9,$t7
+		li $t7,0
+		b next
+		checkIf0x0a:
+		beq $t0, 0x0a, next
 		sb $t0, 0($a1) # store byte: target[i]= $t0
 		addiu $a0, $a0, 1
 		addiu $a1, $a1, 1
-
+		
 		next:
 		addiu $t1, $t1, 1
 		b iterateBuff
 		
 	endIteration:
-		jal incSizeOfMatrix
+		la $t0, numBuff
+		beq $a1, $t0, endd #if file is empty
 		jal convertToInt
-		move $a1,$v1
-		move $a0, $v0
-	
-			
-			
+		bne $t9,$t7,Error
+		endd:
+		#check if it is square
 		
-    	
-    	li $v0,10
-    	syscall
+		
+		la $t0, matrix
+		sub $t4, $t4, $t0
+		
+		div $t4, $t7      # i mod 4
+		mflo $t5          # temp for mod
+		bne  $t5,$t7,Error
+		move $t8, $t9
+
+		move $a0,$t8
+		jal mod_fcn
+		b continue
+		
+	
+	Error:
+		la $a0,errorMes
+		li $v0,4
+		syscall 
+		b end
+	
+	continue:
+	
+	
+	
+	
+	end:
+    		li $v0,10
+    		syscall
     	
     	
   #-----------------------------------------------
@@ -127,12 +162,26 @@ main:
 			sb $v0, 0($t4) # store byte: target[i]= $t0
 			addiu $t4, $t4, 1
 			la $v1,numBuff 
-			move $v0,$a0
+			addiu $t7,$t7,1
 			jr $ra # return to caller	
 		
 		# function to increment the size of the matrix
 		incSizeOfMatrix:
 			
 			addiu $t8, $t8, 1
-			addiu $t1,$t1,1 #Skip 0a
+			
 			jr $ra # return to caller
+			
+		# Mode function
+		mod_fcn: 
+			beq $t8, 2, Matrix2x2
+			li  $t6, 4
+			b Matrix4x4
+			Matrix2x2:
+			li  $t6, 2
+			Matrix4x4:
+			div $a0, $t6      # i mod 4
+			mfhi $t5          # temp for mod
+			move $v0, $t5     # retrun moded num
+			bne  $v0,0,Error
+			jr  $ra
