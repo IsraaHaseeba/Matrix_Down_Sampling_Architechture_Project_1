@@ -3,7 +3,7 @@
 fileName: .asciiz "C:\\Users\\HP\\Desktop\\4th_Year_2nd_semester\\Architecture\\projects\\project_1\\training\\T1.txt"
 buff: .space 10240
 matrix: .space 10240
-numBuff: .word
+numBuff: .space 50
 errorMes: .asciiz "\n\nIncorrect input matrix!"
 
 
@@ -149,7 +149,7 @@ main:
 		beq $a0, 0, done
 		
 		iterateNumber:
-			lb $t1, 0($a1) # load $t1 = str[i] 
+			lb $t3, 0($a1) # load $t1 = str[i] 
 			addiu $t3, $t3, -48 # Convert character to digit 
 			mul $v0, $v0, $t0 # $v0 = sum * 10 
 			addu $v0, $v0, $t3 # $v0 = sum * 10 + digit 
