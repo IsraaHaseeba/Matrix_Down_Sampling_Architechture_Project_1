@@ -1,6 +1,6 @@
 #STRINGS
 .data
-fileName: .asciiz "C:\\Users\\HP\\Desktop\\4th_Year_2nd_semester\\Architecture\\projects\\project_1\\training\\T1.txt"
+fileName: .asciiz "C:\\Users\\sosos\\Desktop\\Arc\\T1.txt"
 buff: .space 10240
 matrix: .space 10240
 numBuff: .space 50
@@ -88,6 +88,8 @@ main:
 		b next
 		checkIf0x0a:
 		beq $t0, 0x0a, next
+		bgt $t0, 0x39, Error
+		blt $t0, 0x30, Error
 		sb $t0, 0($a1) # store byte: target[i]= $t0
 		addiu $a0, $a0, 1
 		addiu $a1, $a1, 1
